@@ -250,7 +250,7 @@ public class OptitrackStreamingClient : MonoBehaviour
 
     [Tooltip("Motive will record when the Unity project is played.")]
     public bool RecordOnPlay = false;
-    
+
     [Tooltip("Skips getting data descriptions. Skeletons will not work with this feature turned on, but it will reduce network usage with a large number of rigid bodies.")]
     public bool SkipDataDescriptions = false;
 
@@ -312,6 +312,16 @@ public class OptitrackStreamingClient : MonoBehaviour
         serverDesc.connected = m_client.Connected;
 
         return serverDesc;
+    }
+
+    public bool EnableAsset(string assetName)
+    {
+        return m_client.RequestCommand("EnableAsset," + assetName);
+    }
+
+    public bool DisableAsset(string assetName)
+    {
+        return m_client.RequestCommand("DisableAsset," + assetName);
     }
 
     private void Update()

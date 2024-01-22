@@ -113,6 +113,14 @@ namespace Agent {
                     jsonTo = JsonUtility.ToJson(this.StreamingClient.GetServerDesc());
                     this.socket.SendImmediateToAll(encoder.GetBytes(jsonTo));
                     break;
+                case "enableasset":
+                    StreamingClient.EnableAsset(contents);
+                    this.socket.SendImmediateToAll(encoder.GetBytes("1"));
+                    break;
+                case "disableasset":
+                    StreamingClient.DisableAsset(contents);
+                    this.socket.SendImmediateToAll(encoder.GetBytes("1"));
+                    break;
                 case "resetorigin":
                     resetOrigin(Int32.Parse(contents));
                     this.socket.SendImmediateToAll(encoder.GetBytes("1"));
