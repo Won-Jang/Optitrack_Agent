@@ -1,17 +1,5 @@
 ﻿/* 
-Copyright © 2016 NaturalPoint Inc.
-
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License. 
+Copyright © 2024 Boystown Research Hospital
 
 Modified: Won Jang (won DOT jang AT boystown DOT org)
 */
@@ -39,13 +27,20 @@ namespace Agent {
         [Tooltip("Subscribes to this asset when using Unicast streaming.")]
         public bool NetworkCompensation = true;
 
-        private BTSocket socket;                    // Socket - TCP/IP or UDP (TODO: UDP is not tested. need to review)
-        private OptitrackRigidBodyState rbState;    // Optitrack data
-        private OptitrackPose userRBstate;          // Custom Rigid Body State. Reset all positions to user
-        private Transform offset;                   // Define offset allowance
+        // Socket - TCP/IP or UDP (TODO: UDP is not tested. need to review)
+        private BTSocket socket;
 
-        private bool isTracking;
-        private bool isCalibrated;
+        // Optitrack data
+        private OptitrackRigidBodyState rbState;
+
+        // Custom Rigid Body State. Reset all positions to user
+        private OptitrackPose userRBstate;
+
+        // Define offset allowance
+        private Transform offset;                   
+
+        private bool isTracking;        // checking whether it is tracking mode
+        private bool isCalibrated;      // checking if the user is set to zero
 
                                                     // TODO: Exporting tracking data to files
         private ArrayList trackingData;             // Tracking data will be stored temporary and export to file
@@ -71,22 +66,31 @@ namespace Agent {
                     return;
                 }
             }
-
+            /* Register Rigid body. Use Rigid Body ID from Motive.
+             * public value. it can be changed in the code or Unity interface
+             */
             this.StreamingClient.RegisterRigidBody( this, RigidBodyId );
-
-            this.socket = new TCPIP(Convert.ToInt16("8888"));
+            // Initialize socket.
+            this.socket = new TCPIP();
+            // Listener
             this.socket.OnDataReceived += new ServerHandlePacketData(server_OnDataReceived);
             this.socket.Start();
             Debug.Log("Listening TCP/IP", this);
         }
-
+        /// <summary>
+        /// Close the socket before close the application
+        /// </summary>
         void OnApplicationQuit()
         {
             this.socket.Stop();
             Debug.Log("Closed Socket", this);
         }
 
-        //This method is called when the server has received data from the client
+        /// <summary>
+        /// called when the server has received data from the client
+        /// </summary>
+        /// <param name="data"></param>
+        /// <param name="bytesRead"></param>
         void server_OnDataReceived(byte[] data, int bytesRead)
         //void server_OnDataReceived(byte[] data, int bytesRead, System.Net.Sockets.TcpClient client)
         {
@@ -97,13 +101,20 @@ namespace Agent {
             string[] tokens = message.Split('#');
             string command = tokens[0];
             string contents = tokens[1];
+
+            // TODO: Probably add error handling? What if message is a wrong structure?
             decodingSocketData(command, contents);
         }
-
+        /// <summary>
+        /// Decoding Socket Data. Transmitted Data will be 'command#contents'. 
+        /// </summary>
+        /// <param name="command"></param>
+        /// <param name="contents"></param>
         private void decodingSocketData(string command, string contents)
         {
             ASCIIEncoding encoder = new ASCIIEncoding();
             string jsonTo;
+            
             switch (command.ToLower())
             {
                 case "echosocket":      // simple echo for verification
@@ -221,14 +232,23 @@ namespace Agent {
             }
         }
 
+        /// <summary>
+        /// Change Rigid Body ID - active tracking rigid body
+        /// </summary>
+        /// <param name="rigidBodyId">Please refer doc.</param>
         private void ChangeRegidBody(Int32 rigidBodyId)
         {
+            // also change RigidBody ID in Unity
             this.RigidBodyId = rigidBodyId;
             this.StreamingClient.RegisterRigidBody(this, rigidBodyId);
+            // Some delay updating the ID, so gives 100 milliseconds
             Thread.Sleep(100);
-            //this.rbState = StreamingClient.GetLatestRigidBodyState(RigidBodyId, NetworkCompensation);
         }
 
+        /// <summary>
+        /// Reset position and rotation value to 0 where the current rigid body is located
+        /// </summary>
+        /// <param name="rigidBodyId">Refer to doc or check streaming ID in Motive</param>
         private void resetOrigin(Int32 rigidBodyId)
         {
             ChangeRegidBody(rigidBodyId);
@@ -236,9 +256,19 @@ namespace Agent {
             this.isCalibrated = true;
         }
 
+        /// <summary>
+        /// Get the current position of the active rigid body
+        /// </summary>
+        /// <param name="currentTransform"></param>
+        /// <returns></returns>
         private Transform getPosition(OptitrackPose currentTransform)
         {
             Transform newTransform = new Transform();
+            /*
+             * Adjust location based on the origin
+             * TODO: Need to implement unit to millimeter. Getting the actual unit from Motive and apply here.
+             * right now, I just used 1000 for converting mm. Motive uses m.
+             */
             if (isCalibrated == true)
             { 
                 newTransform.X = (float)(Math.Round(currentTransform.Position.x - userRBstate.Position.x, 3) * 1000);
@@ -273,6 +303,12 @@ namespace Agent {
             return newTransform;
         }
 
+        /// <summary>
+        /// Check the current rigid body is within the range that user define.
+        /// 
+        /// </summary>
+        /// <param name="pos"></param>
+        /// <returns></returns>
         private bool isRanged(OptitrackPose pos)
         {
             if (Math.Abs(pos.Position.x - this.rbState.Pose.Position.x) < this.offset.X &&
@@ -330,7 +366,11 @@ namespace Agent {
             UpdatePose();
         }
 #endif
-
+        /// <summary>
+        /// May be removed for now but
+        /// TODO: If Matlab needs a package that contains frame information in detail, we can create a detailed package
+        /// including frame ID, position, rotation, timestamp, event tag, etc
+        /// </summary>
         public struct OptiData
         {
             public OptiData(int frameID, OptitrackPose pos)
@@ -348,7 +388,9 @@ namespace Agent {
             UpdatePose();
         }
         
-
+        /// <summary>
+        /// Updating position in Unity
+        /// </summary>
         void UpdatePose()
         {
             rbState = StreamingClient.GetLatestRigidBodyState( RigidBodyId, NetworkCompensation);
@@ -363,9 +405,6 @@ namespace Agent {
                 this.transform.localPosition = rbState.Pose.Position;
                 this.transform.localRotation = rbState.Pose.Orientation;
             }
-
-
-            //Debug.Log(rbState.Pose.Position, this);
         }
     }
 

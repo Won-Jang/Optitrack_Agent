@@ -27,7 +27,7 @@ namespace Agent
         private List<TcpClient> clients;
         private int sendBufferSize = 1024;
         private int readBufferSize = 1024;
-        private int port;
+        private int port = 8888;
         private bool started = false;
 
         /// <summary>
@@ -37,6 +37,11 @@ namespace Agent
         public TCPIP(int port)
         {
             this.port = port;
+            clientBuffers = new ConcurrentDictionary<TcpClient, NetworkBuffer>();
+            clients = new List<TcpClient>();
+        }
+        public TCPIP()
+        {
             clientBuffers = new ConcurrentDictionary<TcpClient, NetworkBuffer>();
             clients = new List<TcpClient>();
         }

@@ -5,6 +5,9 @@ Modified By: Won Jang (won DOT jang AT boystown DOT org)
 */
 namespace Agent
 {
+    /// <summary>
+    /// Socket Interface for TCP/IP and UDP
+    /// </summary>
     interface BTSocket
     {
         void Start();

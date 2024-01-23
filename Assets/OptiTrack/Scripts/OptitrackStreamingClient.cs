@@ -313,12 +313,21 @@ public class OptitrackStreamingClient : MonoBehaviour
 
         return serverDesc;
     }
-
+    /// <summary>
+    /// Enables tracking of corresponding asset (rigid body / skeleton) from Motive
+    /// </summary>
+    /// <param name="assetName"></param>
+    /// <returns>ErrorCode, On success, it returns 0 or ErrorCode_OK.</returns>
     public bool EnableAsset(string assetName)
     {
         return m_client.RequestCommand("EnableAsset," + assetName);
     }
 
+    /// <summary>
+    /// Disable tracking of corresponding asset (rigid body / skeleton) from Motive
+    /// </summary>
+    /// <param name="assetName"></param>
+    /// <returns>ErrorCode, On success, it returns 0 or ErrorCode_OK.</returns>
     public bool DisableAsset(string assetName)
     {
         return m_client.RequestCommand("DisableAsset," + assetName);

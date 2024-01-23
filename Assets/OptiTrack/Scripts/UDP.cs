@@ -16,7 +16,7 @@ namespace Agent
     class UDP : BTSocket
     {
         public event ServerHandlePacketData OnDataReceived;
-        private int port;
+        private int port = 8888;
         bool done;
 
         UdpClient listener;
@@ -28,6 +28,10 @@ namespace Agent
         public UDP(int port)
         {
             this.port = port;
+        }
+
+        public UDP()
+        {
         }
 
         /// <summary>

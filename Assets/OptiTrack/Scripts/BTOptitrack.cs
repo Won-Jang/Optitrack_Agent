@@ -13,7 +13,8 @@ namespace Agent
     /// </summary>
     public class BTOptitrack : MonoBehaviour
     {
+        // Socket - TCP/IP or UDP (TODO: UDP is not tested. need to review)
+        private BTSocket _socket;
 
-        private BTSocket socket;                    // Socket - TCP/IP or UDP (TODO: UDP is not tested. need to review)
     }
 }
