@@ -2,6 +2,12 @@
 
 FILL ME HERE: Project Description
 
+TODO:
+
+- Continue to develop TCP/IP commands based on the requirements
+- Need to seperate as a class file to manage optitrack (originally developed in C# console based but migrated to Unity. clean up and encapsulation)
+- Applying motion capture data to Avatar (Unity)
+
 ## TCP/IP Command
 
  | Member methods | Description | Parameters | Return |
