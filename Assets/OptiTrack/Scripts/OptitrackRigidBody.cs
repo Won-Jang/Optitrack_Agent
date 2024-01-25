@@ -11,6 +11,7 @@ using System.Net.Sockets;
 using System.Collections;
 using System.Threading;
 using UnityEngine;
+using UnityEngine.Rendering.VirtualTexturing;
 
 namespace Agent { 
 /// <summary>
@@ -137,45 +138,18 @@ namespace Agent {
                     this.socket.SendImmediateToAll(encoder.GetBytes("1"));
                     break;
                 case "getposition":
-                    string[] tokens = contents.Split('$');
-                    Int32 streamingId = Int32.Parse(tokens[0]);
-                    string asset = tokens[1];
+                    ChangeRegidBody(Int32.Parse(contents));
 
-                    ChangeRegidBody(streamingId);
+                    jsonTo = JsonUtility.ToJson(getPosition(this.rbState.Pose));
+                    this.socket.SendImmediateToAll(encoder.GetBytes(jsonTo));
 
-                    if (String.Equals(asset, "RigidBody", StringComparison.OrdinalIgnoreCase))
-                    {
-                        jsonTo = JsonUtility.ToJson(getPosition(this.rbState.Pose));
-                        this.socket.SendImmediateToAll(encoder.GetBytes(jsonTo));
-                    }
-                    else if (String.Equals(asset, "Markers", StringComparison.OrdinalIgnoreCase))
-                    {
-                        OptitrackRigidBodyDefinition rbdef = this.StreamingClient.GetRigidBodyDefinitionById(streamingId);
-                        // markers
-                        Marker[] SPmarkers = new Marker[rbdef.Markers.Count];
-                        //rigid body
-
-
-                        for (int i = 0; i < rbdef.Markers.Count; i++)
-                        {
-                            SPmarkers[i] = new Marker();
-                            SPmarkers[i].Id = rbdef.Id;
-                            SPmarkers[i].Name = rbdef.Name + " - " + i;
-                            SPmarkers[i].Position = new Vector3(
-                                                                (float)Math.Round((this.rbState.Pose.Position.x - rbdef.Markers[i].Position.x) * 1000),
-                                                                (float)Math.Round((this.rbState.Pose.Position.y - rbdef.Markers[i].Position.y) * 1000),
-                                                                (float)Math.Round((this.rbState.Pose.Position.z - rbdef.Markers[i].Position.z) * 1000)
-                                                                );
-                        }
-
-                        jsonTo = JsonHelper.ToJson(SPmarkers);
-                        this.socket.SendImmediateToAll(encoder.GetBytes(jsonTo));
-                    }
-                        break;
+                    break;
                 case "setrange":
                     Debug.Log("contents: " + contents, this);
                     Transform pos = JsonUtility.FromJson<Transform>(contents);
+
                     this.offset = pos;
+                    this.socket.SendImmediateToAll(encoder.GetBytes("1"));
                     //this.offset.SetQuaternion();
                     break;
                 case "checkrange":
@@ -255,7 +229,7 @@ namespace Agent {
             this.userRBstate = this.rbState.Pose;
             this.isCalibrated = true;
         }
-
+        /*
         /// <summary>
         /// Get the current position of the active rigid body
         /// </summary>
@@ -264,11 +238,11 @@ namespace Agent {
         private Transform getPosition(OptitrackPose currentTransform)
         {
             Transform newTransform = new Transform();
-            /*
-             * Adjust location based on the origin
-             * TODO: Need to implement unit to millimeter. Getting the actual unit from Motive and apply here.
-             * right now, I just used 1000 for converting mm. Motive uses m.
-             */
+            
+             // Adjust location based on the origin
+             // TODO: Need to implement unit to millimeter. Getting the actual unit from Motive and apply here.
+             // right now, I just used 1000 for converting mm. Motive uses m.
+             
             if (isCalibrated == true)
             { 
                 newTransform.X = (float)(Math.Round(currentTransform.Position.x - userRBstate.Position.x, 3) * 1000);
@@ -302,14 +276,85 @@ namespace Agent {
             
             return newTransform;
         }
+        */
+        private Transform adjustPosition(OptitrackPose currentTransform)
+        {
+            Transform newTransform = new Transform();
 
+            // Adjust location based on the origin
+            // TODO: Need to implement unit to millimeter. Getting the actual unit from Motive and apply here.
+            // right now, I just used 1000 for converting mm. Motive uses m.
+
+            if (isCalibrated == true)
+            {
+                newTransform.X = (float)(Math.Round(currentTransform.Position.x - userRBstate.Position.x, 3) * 1000);
+                newTransform.Y = (float)(Math.Round(currentTransform.Position.y - userRBstate.Position.y, 3) * 1000);
+                newTransform.Z = (float)(Math.Round(currentTransform.Position.z - userRBstate.Position.z, 3) * 1000);
+
+                newTransform.RX = (float)Math.Round(currentTransform.Orientation.x - userRBstate.Orientation.x, 3);
+                newTransform.RY = (float)Math.Round(currentTransform.Orientation.y - userRBstate.Orientation.y, 3);
+                newTransform.RZ = (float)Math.Round(currentTransform.Orientation.z - userRBstate.Orientation.z, 3);
+                newTransform.RW = (float)Math.Round(currentTransform.Orientation.w - userRBstate.Orientation.w, 3);
+
+                newTransform.PITCH = (float)Math.Round(currentTransform.Orientation.eulerAngles.x - userRBstate.Orientation.eulerAngles.x, 3);
+                newTransform.YAW = (float)Math.Round(currentTransform.Orientation.eulerAngles.y - userRBstate.Orientation.eulerAngles.y, 3);
+                newTransform.ROLL = (float)Math.Round(currentTransform.Orientation.eulerAngles.z - userRBstate.Orientation.eulerAngles.z, 3);
+            }
+            else
+            {
+                newTransform.X = (float)(Math.Round(currentTransform.Position.x * 1000));
+                newTransform.Y = (float)(Math.Round(currentTransform.Position.y * 1000));
+                newTransform.Z = (float)(Math.Round(currentTransform.Position.z * 1000));
+
+                newTransform.RX = (float)Math.Round(currentTransform.Orientation.x, 3);
+                newTransform.RY = (float)Math.Round(currentTransform.Orientation.y, 3);
+                newTransform.RZ = (float)Math.Round(currentTransform.Orientation.z, 3);
+                newTransform.RW = (float)Math.Round(currentTransform.Orientation.w, 3);
+
+                newTransform.PITCH = (float)Math.Round(currentTransform.Orientation.eulerAngles.x, 3);
+                newTransform.YAW = (float)Math.Round(currentTransform.Orientation.eulerAngles.y, 3);
+                newTransform.ROLL = (float)Math.Round(currentTransform.Orientation.eulerAngles.z, 3);
+            }
+
+            return newTransform;
+        }
         /// <summary>
-        /// Check the current rigid body is within the range that user define.
-        /// 
+        /// Get the current position and rotation of the Rigid Body and all individual markers
         /// </summary>
-        /// <param name="pos"></param>
-        /// <returns></returns>
-        private bool isRanged(OptitrackPose pos)
+        /// <param name="currentTransform"></param>
+        /// <returns>OptiData</returns>
+        private OptiData getPosition(OptitrackPose currentTransform)
+        {
+            OptiData data = new OptiData();
+            data.AssetId = this.RigidBodyId;
+            // [1] Rigid Body
+            data.RigidBody = adjustPosition(currentTransform);
+
+            // [2] Markers
+            OptitrackRigidBodyDefinition rbdef = this.StreamingClient.GetRigidBodyDefinitionById(this.RigidBodyId);
+            // markers
+            data.Markers = new Transform[rbdef.Markers.Count];
+            //rigid body
+
+
+            for (int i = 0; i < rbdef.Markers.Count; i++)
+            {
+                data.Markers[i] = new Transform();
+                data.Markers[i].X = (float)Math.Round((this.rbState.Pose.Position.x - rbdef.Markers[i].Position.x) * 1000);
+                data.Markers[i].Y = (float)Math.Round((this.rbState.Pose.Position.y - rbdef.Markers[i].Position.y) * 1000);
+                data.Markers[i].Z = (float)Math.Round((this.rbState.Pose.Position.z - rbdef.Markers[i].Position.z) * 1000);
+            }
+
+
+            return data;
+        }
+            /// <summary>
+            /// Check the current rigid body is within the range that user define.
+            /// 
+            /// </summary>
+            /// <param name="pos"></param>
+            /// <returns></returns>
+            private bool isRanged(OptitrackPose pos)
         {
             if (Math.Abs(pos.Position.x - this.rbState.Pose.Position.x) < this.offset.X &&
                 Math.Abs(pos.Position.y - this.rbState.Pose.Position.y) < this.offset.Y &&
@@ -366,6 +411,7 @@ namespace Agent {
             UpdatePose();
         }
 #endif
+        /*
         /// <summary>
         /// May be removed for now but
         /// TODO: If Matlab needs a package that contains frame information in detail, we can create a detailed package
@@ -382,6 +428,7 @@ namespace Agent {
             public int FrameID { get; set; }
             public OptitrackPose Pos { get; set; }
         }
+        */
 
         void Update()
         {
@@ -406,6 +453,19 @@ namespace Agent {
                 this.transform.localRotation = rbState.Pose.Orientation;
             }
         }
+    }
+
+    /// <summary>
+    /// Customized data field for position and rotation of the Rigid body and Markers
+    /// </summary>
+    [System.Serializable]
+    public class OptiData
+    {
+        public int AssetId;
+        public string AssetName;
+
+        public Transform RigidBody;
+        public Transform[] Markers;
     }
 
     [System.Serializable]
