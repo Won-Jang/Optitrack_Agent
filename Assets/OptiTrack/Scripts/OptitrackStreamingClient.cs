@@ -962,7 +962,9 @@ public class OptitrackStreamingClient : MonoBehaviour
         }
 
         m_client.NativeFrameReceived += OnNatNetFrameReceived;
+        //Debug.Log("############ DEBUG HERE ############");
         m_connectionHealthCoroutine = StartCoroutine( CheckConnectionHealth() );
+        
     }
 
 

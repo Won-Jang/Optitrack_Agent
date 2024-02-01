@@ -584,7 +584,7 @@ PrefabInstance:
     - target: {fileID: 3073751486554326286, guid: 1e09d962f56189d46ad6bcd146c01a77, type: 3}
       propertyPath: m_Mesh
       value: 
-      objectReference: {fileID: 10208, guid: 0000000000000000e000000000000000, type: 0}
+      objectReference: {fileID: 0}
     - target: {fileID: 3073751486554326287, guid: 1e09d962f56189d46ad6bcd146c01a77, type: 3}
       propertyPath: m_CastShadows
       value: 1
@@ -702,7 +702,7 @@ RectTransform:
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
   m_AnchoredPosition: {x: -4.435841, y: -6.410176}
-  m_SizeDelta: {x: 200, y: 50}
+  m_SizeDelta: {x: 200, y: 150}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &1931668176
 CanvasRenderer:

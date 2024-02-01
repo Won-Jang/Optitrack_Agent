@@ -7,11 +7,9 @@ Modified: Won Jang (won DOT jang AT boystown DOT org)
 using System;
 using System.Collections.Generic;
 using System.Text;
-using System.Net.Sockets;
 using System.Collections;
 using System.Threading;
 using UnityEngine;
-using UnityEngine.Rendering.VirtualTexturing;
 
 namespace Agent { 
 /// <summary>
@@ -51,6 +49,7 @@ namespace Agent {
         /// </summary>
         void Start()
         {
+            Debug.Log("Start-up");
             this.isCalibrated = false;  // custom position from user
             this.isTracking = false;    // tracking mode
             this.trackingData = new ArrayList();
@@ -76,7 +75,7 @@ namespace Agent {
             // Listener
             this.socket.OnDataReceived += new ServerHandlePacketData(server_OnDataReceived);
             this.socket.Start();
-            Debug.Log("Listening TCP/IP", this);
+            Debug.Log("Listening ports - TCP/IP", this);
         }
         /// <summary>
         /// Close the socket before close the application
@@ -105,6 +104,7 @@ namespace Agent {
 
             // TODO: Probably add error handling? What if message is a wrong structure?
             decodingSocketData(command, contents);
+            
         }
         /// <summary>
         /// Decoding Socket Data. Transmitted Data will be 'command#contents'. 
@@ -120,6 +120,7 @@ namespace Agent {
             {
                 case "echosocket":      // simple echo for verification
                     this.socket.SendImmediateToAll(encoder.GetBytes("conneted"));
+                    Debug.Log("Echoing..... Done.", this);
                     break;
                 case "serverdescription":
                     jsonTo = JsonUtility.ToJson(this.StreamingClient.GetServerDesc());
@@ -128,6 +129,7 @@ namespace Agent {
                 case "enableasset":
                     StreamingClient.EnableAsset(contents);
                     this.socket.SendImmediateToAll(encoder.GetBytes("1"));
+                    Debug.Log("Enable Assets: " + contents, this);
                     break;
                 case "disableasset":
                     StreamingClient.DisableAsset(contents);
@@ -145,7 +147,7 @@ namespace Agent {
 
                     break;
                 case "setrange":
-                    Debug.Log("contents: " + contents, this);
+                    //Debug.Log("contents: " + contents, this);
                     Transform pos = JsonUtility.FromJson<Transform>(contents);
 
                     this.offset = pos;
@@ -225,9 +227,17 @@ namespace Agent {
         /// <param name="rigidBodyId">Refer to doc or check streaming ID in Motive</param>
         private void resetOrigin(Int32 rigidBodyId)
         {
-            ChangeRegidBody(rigidBodyId);
-            this.userRBstate = this.rbState.Pose;
-            this.isCalibrated = true;
+            if (rigidBodyId == 0)
+            {
+                this.isCalibrated = false;
+                this.userRBstate = null;
+            }
+            else
+            {
+                ChangeRegidBody(rigidBodyId);
+                this.userRBstate = this.rbState.Pose;
+                this.isCalibrated = true;
+            }
         }
         /*
         /// <summary>
