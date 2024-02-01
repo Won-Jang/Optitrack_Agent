@@ -960,9 +960,9 @@ public class OptitrackStreamingClient : MonoBehaviour
             this.enabled = false;
             return;
         }
-
+        //Debug.Log("############ DEBUG HERE ############", this);
         m_client.NativeFrameReceived += OnNatNetFrameReceived;
-        //Debug.Log("############ DEBUG HERE ############");
+        
         m_connectionHealthCoroutine = StartCoroutine( CheckConnectionHealth() );
         
     }
