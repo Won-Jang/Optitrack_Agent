@@ -8,6 +8,14 @@ TODO:
 - Need to seperate as a class file to manage optitrack (originally developed in C# console based but migrated to Unity. clean up and encapsulation)
 - Applying motion capture data to Avatar (Unity)
 
+Updates
+
+@2/1/2024
+
+- Fix live logging window
+- clean up codes
+
+
 ## TCP/IP Command
 
  | Member methods | Description | Parameters | Return |

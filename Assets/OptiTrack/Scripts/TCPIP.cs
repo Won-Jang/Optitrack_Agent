@@ -149,7 +149,7 @@ namespace Agent
                 {
                     bytesRead = clientStream.Read(clientBuffers[tcpClient].ReadBuffer, 0, readBufferSize);
                     DateTime date3 = DateTime.Now;
-                    Debug.Log(date3);
+                    //Debug.Log(date3);
                 }
                 catch
                 {
