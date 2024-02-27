@@ -207,6 +207,7 @@ public class OptitrackServerDescription
     public string serverAppVersion;
     public bool connected;
     public bool connectionMulticast;
+    public int numberOfRigidBodies;
 }
 
 /// <summary>
@@ -310,6 +311,7 @@ public class OptitrackStreamingClient : MonoBehaviour
         OptitrackServerDescription serverDesc = new OptitrackServerDescription();
         serverDesc.serverAppVersion = m_client.ServerAppVersion.ToString();
         serverDesc.connected = m_client.Connected;
+        serverDesc.numberOfRigidBodies = this.m_rigidBodyDefinitions.Count;
 
         return serverDesc;
     }

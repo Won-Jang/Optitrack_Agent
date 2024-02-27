@@ -140,6 +140,7 @@ namespace Agent {
                     this.socket.SendImmediateToAll(encoder.GetBytes("1"));
                     break;
                 case "getposition":
+
                     ChangeRegidBody(Int32.Parse(contents));
 
                     jsonTo = JsonUtility.ToJson(getPosition(this.rbState.Pose));
@@ -214,11 +215,21 @@ namespace Agent {
         /// <param name="rigidBodyId">Please refer doc.</param>
         private void ChangeRegidBody(Int32 rigidBodyId)
         {
-            // also change RigidBody ID in Unity
-            this.RigidBodyId = rigidBodyId;
-            this.StreamingClient.RegisterRigidBody(this, rigidBodyId);
-            // Some delay updating the ID, so gives 100 milliseconds
-            Thread.Sleep(100);
+            // Check if the rigid body is in the list
+            OptitrackRigidBodyDefinition rb = this.StreamingClient.GetRigidBodyDefinitionById(rigidBodyId);
+
+            if (rb != null)
+            {
+                // also change RigidBody ID in Unity
+                this.RigidBodyId = rigidBodyId;
+                this.StreamingClient.RegisterRigidBody(this, rigidBodyId);
+                // Some delay updating the ID, so gives 100 milliseconds
+                Thread.Sleep(100);
+            }
+            else
+            {
+                Debug.Log("No Rigid Body ID existed");
+            }
         }
 
         /// <summary>
